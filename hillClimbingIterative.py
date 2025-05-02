@@ -1,67 +1,65 @@
-# TSP con Hill Climbing
 import math
 import random
 
-# Calcular la distancia entre dos coordenadas
-def distancia(coord1, coord2):
-    lat1, lon1 = coord1
-    lat2, lon2 = coord2
-    return math.sqrt((lat1 - lat2) ** 2 + (lon1 - lon2) ** 2)
+coord = {
+    'Jiloyork': (19.916012, -99.580580),
+    'Toluca': (19.289165, -99.655697),
+    'Atlacomulco': (19.799520, -99.873844),
+    'Guadalajara': (20.677754, -103.346253),
+    'Monterrey': (25.691611, -100.321838),
+    'QuintanaRoo': (21.163112, -86.802315),
+    'Michohacan': (19.701400, -101.208297),
+    'Aguascalientes': (21.876410, -102.264387),
+    'CDMX': (19.432713, -99.133183),
+    'QRO': (20.597194, -100.386670)
+}
 
-# Calcular la distancia total de una ruta
-def evalua_ruta(ruta, coord):
+def distancia(coord1, coord2):
+    return math.sqrt((coord1[0] - coord2[0]) ** 2 + (coord1[1] - coord2[1]) ** 2)
+
+def evalua_ruta(ruta):
     total = 0
     for i in range(len(ruta) - 1):
-        ciudad1 = ruta[i]
-        ciudad2 = ruta[i + 1]
-        total += distancia(coord[ciudad1], coord[ciudad2])
-    # Añadir la distancia entre la última ciudad y la primera
-    total += distancia(coord[ruta[-1]], coord[ruta[0]])
+        total += distancia(coord[ruta[i]], coord[ruta[i+1]])
+    total += distancia(coord[ruta[-1]], coord[ruta[0]])  # regreso al inicio
     return total
 
-# Algoritmo Hill Climbing para resolver el TSP
-def hill_climbing(coord):
-    # Crear la ruta inicial aleatoria
+def hill_climbing(ciudad_inicio):
     ruta = list(coord.keys())
+    ruta.remove(ciudad_inicio)
     random.shuffle(ruta)
-    
+    ruta.insert(0, ciudad_inicio)
+
     mejora = True
     while mejora:
         mejora = False
-        dist_actual = evalua_ruta(ruta, coord)
-        # Evaluar vecinos
-        for i in range(len(ruta)):
-            if mejora:
-                break
-            for j in range(len(ruta)):
+        dist_actual = evalua_ruta(ruta)
+        for i in range(1, len(ruta)):
+            for j in range(1, len(ruta)):
                 if i != j:
-                    # Intercambiar dos ciudades
                     ruta_tmp = ruta[:]
                     ruta_tmp[i], ruta_tmp[j] = ruta_tmp[j], ruta_tmp[i]
-                    dist = evalua_ruta(ruta_tmp, coord)
-                    if dist < dist_actual:
-                        # Se ha encontrado un vecino que mejora el resultado
+                    nueva_dist = evalua_ruta(ruta_tmp)
+                    if nueva_dist < dist_actual:
+                        ruta = ruta_tmp
                         mejora = True
-                        ruta = ruta_tmp[:]
                         break
+            if mejora:
+                break
     return ruta
 
-if __name__ == "__main__":
-    # Coordenadas de las ciudades
-    coord = {
-        'Jiloyork': (19.916012, -99.580580),
-        'Toluca': (19.289165, -99.655697),
-        'Atlacomulco': (19.799520, -99.873844),
-        'Guadalajara': (20.677754472859146, -103.34625354877137),
-        'Monterrey': (25.69161110159454, -100.321838480256),
-        'QuintanaRoo': (21.163111924844458, -86.80231502121464),
-        'Michohacan': (19.701400113725654, -101.20829680213464),
-        'Aguascalientes': (21.87641043660486, -102.26438663286967),
-        'CDMX': (19.432713075976878, -99.13318344772986),
-        'QRO': (20.59719437542255, -100.38667040246602)
-    }
-    
-    # Ejecutar el algoritmo Hill Climbing
-    ruta = hill_climbing(coord)
-    print("Ruta óptima:", ruta)
-    print("Distancia Total:", evalua_ruta(ruta, coord))
+def hill_climbing_iterativo(ciudad_inicio, max_iteraciones=10):
+    mejor_ruta = None
+    mejor_distancia = float('inf')
+
+    for _ in range(max_iteraciones):
+        ruta = hill_climbing(ciudad_inicio)
+        dist = evalua_ruta(ruta)
+        if dist < mejor_distancia:
+            mejor_ruta = ruta
+            mejor_distancia = dist
+
+    return mejor_ruta, mejor_distancia
+
+def obtener_ciudades():
+    return list(coord.keys())
